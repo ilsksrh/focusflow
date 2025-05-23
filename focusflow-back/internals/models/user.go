@@ -8,4 +8,6 @@ type User struct {
 	Role         string `json:"role"`
 	IsBlocked    bool   `gorm:"default:false" json:"is_blocked"`
 	ProfilePicture string `json:"profile_picture"`
+	TeamID *uint     `json:"team_id"`
+	Team   *Team     `gorm:"foreignKey:TeamID" json:"team,omitempty"`
 }

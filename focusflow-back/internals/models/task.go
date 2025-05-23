@@ -10,6 +10,8 @@ type Task struct {
     Description string    `json:"description"`
     Tags        []*Tag    `gorm:"many2many:task_tags;" json:"tags"`
     UserID      uint      `json:"user_id"`
-
+    User        *User      `gorm:"foreignKey:UserID" json:"user"`
+    TeamID      *uint      `json:"team_id"`
+    Team        *Team     `gorm:"foreignKey:TeamID" json:"team"`
 
 }

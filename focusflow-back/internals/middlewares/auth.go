@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"focusflow/internals/auth"
+	"focusflow/internals/utils"
 	"net/http"
 )
 
@@ -32,6 +33,18 @@ func RequireAdmin(next http.Handler) http.Handler {
 			return
 		}
 
+		next.ServeHTTP(w, r)
+	})
+}
+
+// Проверка прав суперадмина
+func RequireSuperadmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user, err := utils.GetCurrentUser(r)
+		if err != nil || user.Role != "superadmin" {
+			http.Error(w, "Только для суперадмина", http.StatusForbidden)
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }

@@ -73,6 +73,20 @@ export default function Sidebar({ viewMode, setViewMode, onProfileClick, setShow
             </button>
           </li>
         )}
+        {user?.role === 'superadmin' && (
+          <li className="nav-item">
+            <button
+              className={`btn btn-sm mb-2 w-100 ${viewMode === 'superadmin' ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={() => {
+                setViewMode('superadmin');
+                setShowProfile(false);
+              }}
+            >
+              🛠 Superadmin Panel
+            </button>
+          </li>
+        )}
+
 
         <li className="nav-item mt-auto">
           <button

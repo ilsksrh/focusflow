@@ -19,6 +19,7 @@ type UpdateProfileInput struct {
 
 type ChangePasswordInput struct {
 	NewPassword string `json:"new_password"`
+	OldPassword string `json:"old_password"`
 }
 
 
@@ -40,16 +41,22 @@ func UpdateUserProfile(user *models.User, input UpdateProfileInput) error {
 
 
 func ChangeUserPassword(user *models.User, input ChangePasswordInput) error {
+	// Проверка старого пароля
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.OldPassword)); err != nil {
+		return errors.New("Неверный текущий пароль")
+	}
+
+	// Проверка валидности нового пароля
 	if err := utils.ValidatePassword(input.NewPassword); err != nil {
 		return err
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.NewPassword))
-	if err == nil {
+	// Проверка на совпадение со старым паролем
+	if input.OldPassword == input.NewPassword {
 		return errors.New("Новый пароль не должен совпадать с текущим")
 	}
 
-	// Хэшируем и сохраняем новый пароль
+	// Хэшируем новый пароль
 	hashed, err := bcrypt.GenerateFromPassword([]byte(input.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return errors.New("Ошибка хэширования пароля")
@@ -58,6 +65,7 @@ func ChangeUserPassword(user *models.User, input ChangePasswordInput) error {
 	user.PasswordHash = string(hashed)
 	return db.DB.Save(user).Error
 }
+
 
 
 // Загрузка фото профиля

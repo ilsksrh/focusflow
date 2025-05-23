@@ -43,3 +43,17 @@ func GetTagsByTaskID(taskID uint) ([]*models.Tag, error) {
 func DeleteTag(id uint) error {
 	return db.DB.Delete(&models.Tag{}, id).Error
 }
+
+func UpdateTag(id uint, newName string) (*models.Tag, error) {
+	var tag models.Tag
+	if err := db.DB.First(&tag, id).Error; err != nil {
+		return nil, errors.New("Тег не найден")
+	}
+
+	tag.Name = newName
+	if err := db.DB.Save(&tag).Error; err != nil {
+		return nil, err
+	}
+	return &tag, nil
+}
+

@@ -2,9 +2,13 @@ import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import WelcomeBanner from '../components/WelcomeBanner';
 import AdminUserPanel from '../components/AdminUserPanel';
+import SuperadminUserPanel from '../components/SuperadminUserPanel';
+import SuperadminKanban from '../components/SuperadminKanban';
 import CalendarView from '../components/CalendarView';
 import TaskList from '../components/TaskList';
 import GoalForm from '../components/GoalForm';
+import KanbanBoard from '../components/Kanban'; 
+import ListView from '../components/ListView'; 
 import ProfilePanel from '../components/ProfilePanel';
 import { getCurrentUser } from '../api/auth';
 import { getGoals, createGoal } from '../api/goals';
@@ -120,9 +124,13 @@ export default function DashboardPage() {
                   </>
                 )}
 
-                {viewMode === 'kanban' && <div>Kanban view coming soon...</div>}
-                {viewMode === 'list' && <div>List view coming soon...</div>}
+                {viewMode === 'kanban' && (
+                  user?.role === 'superadmin' ? <SuperadminKanban /> : <KanbanBoard />
+                )}
+
+                {viewMode === 'list' && <ListView user={user} />}
                 {viewMode === 'admin' && user?.role === 'admin' && <AdminUserPanel />}
+                {viewMode === 'superadmin' && user?.role === 'superadmin' && <SuperadminUserPanel />}
               </>
             )}
           </div>

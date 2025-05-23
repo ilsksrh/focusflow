@@ -69,9 +69,12 @@ func Me(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
-		"username":        user.Username,
-		"role":            user.Role,
-		"profile_picture": user.ProfilePicture,
-		"is_blocked":      user.IsBlocked,
-	})
+	"id":              user.ID,
+	"username":        user.Username,
+	"role":            user.Role,
+	"profile_picture": user.ProfilePicture,
+	"is_blocked":      user.IsBlocked,
+	"team_id":         user.TeamID,
+})
+
 }

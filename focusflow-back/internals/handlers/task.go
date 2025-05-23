@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"focusflow/internals/db" 
 	"focusflow/internals/models"
 	"focusflow/internals/services"
 	"focusflow/internals/utils"
@@ -22,11 +23,13 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
     }
 
     task.UserID = user.ID 
+	task.TeamID = user.TeamID
 
     if err := services.CreateTask(&task); err != nil {
         utils.RespondWithError(w, http.StatusInternalServerError, "Ошибка при создании задачи")
         return
     }
+	db.DB.Preload("Tags").First(&task, task.ID)
 
     utils.RespondWithJSON(w, http.StatusCreated, task)
 }
@@ -115,4 +118,73 @@ func DeleteTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.RespondWithJSON(w, http.StatusOK, map[string]string{"message": "Задача удалена"})
+}
+
+func GetTeamTasks(w http.ResponseWriter, r *http.Request) {
+	user, err := utils.GetCurrentUser(r)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Не авторизован")
+		return
+	}
+
+	tasks, err := services.GetTeamTasks(user.ID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Не удалось получить командные задачи")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, tasks)
+}
+
+func GetAllTeamTasks(w http.ResponseWriter, r *http.Request) {
+	user, err := utils.GetCurrentUser(r)
+	if err != nil || user.Role != "superadmin" {
+		utils.RespondWithError(w, http.StatusForbidden, "Доступ только для суперадмина")
+		return
+	}
+
+	tasks, err := services.GetAllTeamTasks()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Ошибка получения задач")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, tasks)
+}
+
+func GetAllTeamTasksKanban(w http.ResponseWriter, r *http.Request) {
+	user, err := utils.GetCurrentUser(r)
+	if err != nil || user.Role != "superadmin" {
+		utils.RespondWithError(w, http.StatusForbidden, "Доступ только для суперадмина")
+		return
+	}
+
+	tasks, err := services.GetAllTeamTasks()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Ошибка получения задач")
+		return
+	}
+
+	result := make(map[string]map[string][]models.Task)
+
+	for _, task := range tasks {
+		if task.Team == nil {
+			continue // если нет команды — пропускаем
+		}
+		teamName := task.Team.Name
+		if _, ok := result[teamName]; !ok {
+			result[teamName] = map[string][]models.Task{
+				"todo": {},
+				"done": {},
+			}
+		}
+
+		if task.IsDone {
+			result[teamName]["done"] = append(result[teamName]["done"], task)
+		} else {
+			result[teamName]["todo"] = append(result[teamName]["todo"], task)
+		}
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, result)
 }

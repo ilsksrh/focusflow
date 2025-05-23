@@ -15,20 +15,18 @@ export async function uploadProfilePicture(file) {
     return await res.json();
   }
   
-  export async function updatePassword(newPassword) {
-    const res = await fetch('http://localhost:8080/profile/change_password', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({ new_password: newPassword }),
-    });
-  
-    if (!res.ok) {
-      throw new Error('Ошибка смены пароля');
-    }
-  
-    return await res.json();
+export async function updatePassword(oldPassword, newPassword) {
+  const res = await fetch('http://localhost:8080/profile/change_password', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error?.error || 'Failed to update password');
   }
-  
+
+  return await res.json();
+}
